@@ -17,23 +17,48 @@ int  getTokenNumbersPerLine(string current);
 void displayProductions(vector < vector <string > >, int, int);
 void generateFirstSet(vector < vector <string > >, int, int);
 void generateFollowSet(vector < vector <string > >, int, int);
+void generateEpsilonSet(vector < vector <string > >, int, int);
+void instantiateParseTable(int, int);
+void displayParseTable();
 
 vector<string> splitTokens(string &, char);
 
+vector <vector <string> > productionRules;
 vector <string> firstSet;
 vector <string> followSet;
+vector <string> inputs;
+vector <string> epsilonSet;
+vector <vector <string> > parseTable;
+
+int rowDim;
+int colDim;
+int numInputs;
+
 
 int main ()
 {
-    
-    vector <vector <string> > productionRules;
-    
-
     int i = 0;
     int j = 0;
-    int rowDim = 0;
-    int colDim = 0;
-    
+    rowDim = 0;
+    colDim = 0;
+    numInputs = 12;
+
+
+    inputs.resize(numInputs);
+
+    inputs[0] = "id";
+    inputs[1] = "number";
+    inputs[2] = "read";
+    inputs[3] = "write";
+    inputs[4] = "becomes";
+    inputs[5] = "lparen";
+    inputs[6] = "rparen";
+    inputs[7] = "+";
+    inputs[8] = "-";
+    inputs[9] = "*";
+    inputs[10] = "/";
+    inputs[11] = "$$";
+
     string line; //stores each line in the file
     
     ifstream inputFile;
@@ -106,6 +131,9 @@ int main ()
     
     generateFirstSet(productionRules, rowDim, colDim);
     generateFollowSet(productionRules, rowDim, colDim);
+    generateEpsilonSet(productionRules, rowDim, colDim);
+    instantiateParseTable(rowDim, colDim);
+    displayParseTable();
     
     return 0;
     
@@ -429,8 +457,7 @@ void generateFirstSet(vector < vector < string > > prods, int rows, int cols)
         // NT -> T1 T2
         if(productions[b].size() == 3)
         {
-            //cout << "Size 3" << endl;
-
+            
             string firstterminal = productions[b][productions[b].size() - 2];
             string secondterminal = productions[b][productions[b].size() - 1];
 
@@ -469,6 +496,8 @@ void generateFirstSet(vector < vector < string > > prods, int rows, int cols)
 
         } 
         // end if block
+
+        // NT -> T1 T2 T3 where string_EPS(T3) is TRUE
 
          if(productions[b].size() == 4)
          {
@@ -525,6 +554,16 @@ void generateFirstSet(vector < vector < string > > prods, int rows, int cols)
         // end if block
 
 
+        // Follow(T#) = First(T# + 1)
+
+    
+        
+
+
+
+
+
+          
 
 
 
@@ -544,4 +583,135 @@ void generateFirstSet(vector < vector < string > > prods, int rows, int cols)
 
 
 
+ }
+
+ void generateEpsilonSet(vector < vector <string> > rules, int r, int c)
+ {
+
+    int i;
+    int j;
+    int l;
+
+
+    epsilonSet.resize(r);
+
+    for(l = 0; l<r; l++)
+    {
+        epsilonSet[l] = "";
+    }
+
+
+
+    for(i = 0; i<r; i++)
+    {
+        if(rules[i].size() == 2)
+        {
+            epsilonSet[i] = epsilonSet[i] + rules[i][0];
+        }
+    }
+
+    for(j = 0; j<r; j++)
+    {
+
+        cout << "Current epsilon element: " << epsilonSet[j] << endl;
+
+
+    }
+
  }	
+
+void instantiateParseTable(int r, int c)
+{
+    int e = 0;
+    int m = 0;
+    int t = 0;
+    int y = 0;
+    int z = 0;
+    int n = 0;
+    int l  = 0;
+    int endIndex = 0;
+    int toUpdate = FALSE;
+
+    parseTable.resize(r+1);
+
+    for(t = 0; t<r+1; t++)
+    {
+        parseTable[t].resize(c+1);
+    }
+
+    for (y = 0; y<r+1; y++)
+    {
+        for(z = 0; z<c+1; z++)
+        {
+            parseTable[y][z] = "";
+        }
+    }
+
+    // for(n = 0; n < 1; n++)
+    // {
+    //     for(l = 0; l<numInputs; l++)
+    //     {
+    //         parseTable[n][l] = parseTable[n][l] + inputs[l];
+    //     }
+    // }
+
+    parseTable[0][1] = inputs[0];
+    parseTable[0][2] = inputs[1];
+    parseTable[0][3] = inputs[2];
+    parseTable[0][4] = inputs[3];
+    parseTable[0][5] = inputs[4];
+    parseTable[0][6] = inputs[5];
+    parseTable[0][7] = inputs[6];
+    parseTable[0][8] = inputs[7];
+    parseTable[0][9] = inputs[8];
+    parseTable[0][10] = inputs[9];
+    parseTable[0][11] = inputs[10];
+    parseTable[0][12] = inputs[11];
+
+
+    for(e = 0; e< r; e++)
+    {
+    
+        for(m = 0; m<r; m++)
+        {
+            if(productionRules[e][0].compare(parseTable[m][0]) == 0)
+            {
+                toUpdate = FALSE;
+                break;
+            }
+                
+            else
+            {
+                toUpdate = TRUE;
+            }
+                
+
+        }
+
+        if(toUpdate == TRUE)
+        {
+            parseTable[e+1][0] = parseTable[e+1][0] + productionRules[e][0];
+        }
+
+
+    }
+
+}
+
+void displayParseTable()
+{
+    int parseRow = 0;
+    int parseCol = 0;
+
+    for(parseRow = 0; parseRow <rowDim+1; parseRow++)
+    {
+        for(parseCol = 0; parseCol <colDim; parseCol ++)
+        {
+            cout << parseTable[parseRow][parseCol] << "\t";
+        }
+
+        cout << endl;
+    }
+}
+
+
